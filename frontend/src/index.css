@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#EFECE6] text-[#1C1917] font-sans antialiased selection:bg-[#C5855A]/20 selection:text-[#8E5633];
+    background-color: #EFECE6;
+  }
+}
+
+/* Custom Refined Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EFECE6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DDD5CA;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C8BEB0;
+}
+
+/* Auren Luxury Aesthetic Elements */
+.auren-card {
+  background: #FAF8F5;
+  border: 1px solid #E2DAD0;
+  box-shadow: 0 4px 20px rgba(28, 25, 23, 0.04);
+  border-radius: 1.25rem;
+}
+
+.auren-card-dark {
+  background: #181716;
+  border: 1px solid #35312C;
+  color: #FAF8F5;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  border-radius: 1.25rem;
+}
+
+.auren-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auren-card-hover:hover {
+  background: #FFFFFF;
+  border-color: #C5855A;
+  box-shadow: 0 12px 36px rgba(28, 25, 23, 0.07), 0 0 0 1px rgba(197, 133, 90, 0.15);
+  transform: translateY(-2px);
+}
+
+.copper-gradient {
+  background: linear-gradient(135deg, #C5855A 0%, #E2AB8A 50%, #B27045 100%);
+}
+
+.copper-gradient-subtle {
+  background: linear-gradient(135deg, rgba(197, 133, 90, 0.15) 0%, rgba(226, 171, 138, 0.05) 100%);
+}
+
+.copper-border {
+  border-color: #C5855A;
+}
+
+.copper-text-gradient {
+  background: linear-gradient(135deg, #A7653C 0%, #C5855A 60%, #E2AB8A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-copper {
+  box-shadow: 0 0 20px -2px rgba(197, 133, 90, 0.35);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 16px -2px rgba(22, 163, 74, 0.3);
+}
+
+.glow-amber {
+  box-shadow: 0 0 16px -2px rgba(217, 119, 6, 0.3);
+}
+
+.glow-rose {
+  box-shadow: 0 0 16px -2px rgba(220, 38, 38, 0.3);
+}
+
+/* Glass Card Compatibility */
+.glass-card {
+  background: rgba(250, 248, 245, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid #E2DAD0;
+  box-shadow: 0 4px 20px rgba(28, 25, 23, 0.04);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  background: #FFFFFF;
+  border-color: #C5855A;
+  box-shadow: 0 10px 30px rgba(28, 25, 23, 0.06);
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes aurenStrokeDraw {
+  0% {
+    stroke-dashoffset: 350;
+    fill-opacity: 0;
+  }
+  60% {
+    stroke-dashoffset: 0;
+    fill-opacity: 0.2;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+}
+
+@keyframes aurenGlowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 16px rgba(197, 133, 90, 0.45));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 32px rgba(226, 171, 138, 0.8));
+    transform: scale(1.02);
+  }
+}
+
+@keyframes aurenShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-auren-draw {
+  stroke-dasharray: 350;
+  animation: aurenStrokeDraw 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-auren-glow {
+  animation: aurenGlowPulse 3s ease-in-out infinite;
+}
+
+.auren-shimmer-text {
+  background: linear-gradient(90deg, #FAF8F5 0%, #E2AB8A 50%, #FAF8F5 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: aurenShimmer 4s linear infinite;
+}
+
+/* Board Deck Print & PDF Export Styles */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt;
+  }
+
+  aside, header, nav, button, .print\\:hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .auren-card, .auren-card-dark {
+    box-shadow: none !important;
+    border: 1px solid #CCCCCC !important;
+    page-break-inside: avoid;
+  }
+}
+
+
+

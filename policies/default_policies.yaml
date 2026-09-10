@@ -1,0 +1,90 @@
+version: "1.8.0"
+name: "Standard Enterprise Autonomous Operations Policy"
+effective_date: "2026-01-01T00:00:00Z"
+author: "System Administrator"
+description: "Core guardrail and governance policy rules for bounded autonomous AI business operations."
+
+autonomy_tiers:
+  tier_0:
+    name: "Observe Only"
+    description: "AI observes world state, detects anomalies, but all actions are disabled."
+    auto_execution_allowed: false
+    requires_human_approval: false
+  tier_1:
+    name: "Human-in-the-Loop (Suggestion Only)"
+    description: "AI proposes decisions and actions; every single action requires explicit human approval."
+    auto_execution_allowed: false
+    requires_human_approval: true
+  tier_2:
+    name: "Bounded Autonomous (Low Risk Auto, High Risk Approval)"
+    description: "Low-risk reversible actions under spending cap execute automatically. High-risk actions require human approval."
+    auto_execution_allowed: true
+    requires_human_approval: false # for low risk
+  tier_3:
+    name: "Scoped High Autonomy"
+    description: "Fully autonomous execution within strict verified blast radius and budget boundaries."
+    auto_execution_allowed: true
+    requires_human_approval: false
+
+global_limits:
+  max_autonomous_spend_per_action_usd: 5000.00
+  max_autonomous_spend_per_cycle_usd: 15000.00
+  max_daily_budget_usd: 50000.00
+  max_blast_radius_entities: 10
+  min_confidence_threshold: 0.85
+  disallow_irreversible_autonomous_actions: true
+
+domain_rules:
+  sales:
+    max_discount_percentage: 15.0
+    max_credit_limit_usd: 25000.00
+    require_approval_for_contract_changes: true
+    allowed_autonomous_actions:
+      - "send_followup_email"
+      - "schedule_meeting_invite"
+      - "update_lead_score"
+      - "assign_account_rep"
+      - "apply_standard_discount"
+  
+  finance:
+    max_autonomous_refund_usd: 500.00
+    max_payment_retry_attempts: 3
+    require_approval_for_payouts_over_usd: 2000.00
+    allowed_autonomous_actions:
+      - "retry_failed_invoice"
+      - "send_payment_reminder"
+      - "apply_credit_note"
+      - "issue_micro_refund"
+
+  support:
+    max_service_credit_usd: 200.00
+    escalation_sla_hours: 2.0
+    allowed_autonomous_actions:
+      - "send_sla_escalation"
+      - "draft_ticket_resolution"
+      - "update_priority"
+      - "assign_specialist"
+      - "grant_service_credit"
+
+  marketing:
+    max_campaign_budget_adjustment_usd: 1000.00
+    allowed_autonomous_actions:
+      - "pause_underperforming_ad_set"
+      - "increase_bid_for_high_roas"
+      - "send_newsletter_segment"
+      - "generate_ab_test_copy"
+
+  operations:
+    max_server_scale_delta_instances: 5
+    allowed_autonomous_actions:
+      - "scale_worker_pool"
+      - "clear_stale_cache"
+      - "trigger_system_backup"
+      - "restart_unhealthy_container"
+
+forbidden_actions_all_tiers:
+  - "delete_customer_database"
+  - "terminate_vendor_master_contract"
+  - "override_security_credentials"
+  - "modify_system_guardrails_autonomously"
+  - "bypass_compliance_checks"

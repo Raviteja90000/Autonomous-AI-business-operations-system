@@ -20,8 +20,23 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let reconnectTimeout: any;
 
     const connect = () => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/events`;
+      const env = (import.meta as any).env;
+      let wsUrl: string;
+      if (env?.VITE_WS_URL) {
+        wsUrl = String(env.VITE_WS_URL).trim();
+      } else if (env?.VITE_API_URL) {
+        try {
+          const parsed = new URL(String(env.VITE_API_URL).trim(), window.location.href);
+          const wsProto = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+          wsUrl = `${wsProto}//${parsed.host}/ws/events`;
+        } catch {
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          wsUrl = `${protocol}//${window.location.host}/ws/events`;
+        }
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}/ws/events`;
+      }
 
       try {
         const ws = new WebSocket(wsUrl);

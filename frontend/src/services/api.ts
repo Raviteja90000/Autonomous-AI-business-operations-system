@@ -30,9 +30,10 @@ import {
 
 
 const getApiBase = (): string => {
-  const envUrl = import.meta.env.VITE_API_URL;
+  const env = (import.meta as any).env;
+  const envUrl = env?.VITE_API_URL;
   if (!envUrl) return '/api';
-  const clean = envUrl.trim().replace(/\/+$/, '');
+  const clean = String(envUrl).trim().replace(/\/+$/, '');
   return clean.endsWith('/api') ? clean : `${clean}/api`;
 };
 

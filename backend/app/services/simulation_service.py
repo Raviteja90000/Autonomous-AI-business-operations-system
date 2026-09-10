@@ -137,6 +137,16 @@ class ScenarioSimulationService:
             correlation_id=correlation_id,
         )
 
+        # Attach scenario financial details to cycle metadata
+        cycle_meta = dict(cycle.metadata_json or {})
+        cycle_meta.update({
+            "scenario_id": scenario_id,
+            "title": scenario["title"],
+            "arr_impact_usd": float(scenario.get("arr_impact_usd", 0.0)),
+        })
+        cycle.metadata_json = cycle_meta
+        await db.commit()
+
         # Broadcast scenario completion event
         await ws_manager.broadcast("simulation:completed", {
             "scenario_id": scenario_id,
@@ -144,6 +154,7 @@ class ScenarioSimulationService:
             "status": cycle.status,
             "domain": domain,
             "correlation_id": correlation_id,
+            "arr_impact_usd": float(scenario.get("arr_impact_usd", 0.0)),
             "completed_at": cycle.completed_at.isoformat() if cycle.completed_at else datetime.now(timezone.utc).isoformat(),
         })
 

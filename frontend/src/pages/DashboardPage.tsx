@@ -46,12 +46,18 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     loadData();
 
+    const handleRefresh = () => {
+      loadData();
+    };
+
+    window.addEventListener('auren:data-refresh', handleRefresh);
     // Subscribe to real-time events to auto-refresh data
     const unsubscribeAll = subscribe('*', () => {
       loadData();
     });
 
     return () => {
+      window.removeEventListener('auren:data-refresh', handleRefresh);
       unsubscribeAll();
     };
   }, [autonomyTier]);

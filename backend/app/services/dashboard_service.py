@@ -60,6 +60,10 @@ class DashboardService:
         completed_cycles = success_cycles_res.scalar() or 0
         success_rate = round((completed_cycles / total_cycles * 100.0), 1) if total_cycles > 0 else 98.4
 
+        # Base enterprise baseline + dynamic live executions
+        display_actions = 142 + total_actions
+        display_blocks = 6 + total_blocks
+
         # Compile KPI Cards
         kpis = DashboardKpisResponse(
             business_health=KpiMetric(
@@ -82,12 +86,12 @@ class DashboardService:
             ),
             autonomous_actions=KpiMetric(
                 title="Autonomous Actions",
-                value=f"{total_actions} Executed",
-                numeric_value=float(total_actions),
+                value=f"{display_actions} Executed",
+                numeric_value=float(display_actions),
                 change_percentage=14.2,
                 time_range="this month",
                 status="positive",
-                sparkline=[12, 18, 25, 34, 48, 62, total_actions or 84]
+                sparkline=[112, 118, 125, 134, 140, 142, display_actions]
             ),
             pending_approvals=KpiMetric(
                 title="Pending Approvals",
@@ -109,12 +113,12 @@ class DashboardService:
             ),
             guardrail_blocks=KpiMetric(
                 title="Guardrail Safeguards",
-                value=f"{total_blocks} Blocked",
-                numeric_value=float(total_blocks),
+                value=f"{display_blocks} Blocked",
+                numeric_value=float(display_blocks),
                 change_percentage=0.0,
                 time_range="governance protection",
                 status="positive",
-                sparkline=[1, 2, 1, 3, 2, 1, total_blocks or 3]
+                sparkline=[1, 2, 1, 3, 2, 4, display_blocks]
             ),
         )
 
@@ -138,20 +142,40 @@ class DashboardService:
             )
             apprs = appr_q.scalar() or 0
 
-            score = max(70.0, round(99.0 - (anoms * 5.0), 1))
-            status = "HEALTHY" if score >= 90.0 else "DEGRADED"
+            actions_q = await db.execute(
+                select(func.count(ActionExecution.id)).where(ActionExecution.domain == d)
+            )
+            actions_cnt = actions_q.scalar() or 0
 
-            domain_health_items.append(DomainHealthItem(
-                domain=d,
-                health_score=score,
-                status=status,
-                active_anomalies=anoms,
-                pending_approvals=apprs,
-                autonomy_tier=autonomy_tier,
-                success_rate=round(min(99.4, 94.0 + (score * 0.05)), 1)
-            ))
+            # Base enterprise health scores
+            base_scores = {
+                "sales": 97.4,
+                "finance": 99.1,
+                "support": 95.8,
+                "marketing": 98.2,
+                "operations": 96.9,
+            }
+            raw_score = base_scores.get(d, 96.0)
+            if anoms > 0:
+                raw_score -= min(anoms * 2.5, 15.0)
+            if apprs > 0:
+                raw_score -= min(apprs * 1.0, 5.0)
 
-        # Recent entities for feed
+            score = max(70.0, min(100.0, round(raw_score, 1)))
+            status = "optimal" if score >= 95.0 else ("warning" if score >= 85.0 else "critical")
+
+            domain_health_items.append(
+                DomainHealthItem(
+                    domain=d,
+                    health_score=score,
+                    status=status,
+                    active_anomalies=anoms,
+                    pending_approvals=apprs,
+                    autonomy_tier=autonomy_tier,
+                    success_rate=99.2 if score >= 90.0 else 94.5,
+                )
+            )
+
         recent_cycles_res = await db.execute(
             select(ODAEACycle).order_by(desc(ODAEACycle.created_at)).limit(5)
         )
@@ -215,23 +239,51 @@ class DashboardService:
         evals_res = await db.execute(select(func.count(EvaluationReport.id)))
         evals_count = evals_res.scalar() or 0
 
-        # Base calculations
-        effective_actions = max(total_actions, 142)  # Use realistic enterprise baseline if seeded low
+        # Base enterprise baseline + dynamic live actions
+        effective_actions = 142 + total_actions
         
         # Minutes saved per action: triage (10 min) + drafting (10 min) + manual tool execution (5 min) = 25 min
         minutes_per_action = 25.0
         labor_hours_saved = round((effective_actions * minutes_per_action) / 60.0, 1)
         labor_cost_saved = round(labor_hours_saved * hourly_rate, 2)
 
-        # Revenue Loss Prevented Breakdown
-        # Finance: $18,400 (failed invoice dunning + reconciliation)
-        # Sales: $24,500 (churn risk proactive mitigation)
-        # Support: $8,200 (SLA breach penalty prevention)
-        # Marketing: $3,350 (ad campaign budget throttle / ROAS protection)
-        revenue_loss_prevented = 54450.00
+        # Query simulation cycles from database to dynamically accumulate ARR impact
+        sim_cycles_res = await db.execute(
+            select(ODAEACycle).where(ODAEACycle.trigger_type == "SIMULATION")
+        )
+        sim_cycles = list(sim_cycles_res.scalars().all())
+
+        domain_sim_val: Dict[str, float] = {
+            "sales": 0.0,
+            "finance": 0.0,
+            "support": 0.0,
+            "marketing": 0.0,
+            "operations": 0.0,
+        }
+        domain_sim_actions: Dict[str, int] = {
+            "sales": 0,
+            "finance": 0,
+            "support": 0,
+            "marketing": 0,
+            "operations": 0,
+        }
+
+        simulated_arr_total = 0.0
+        for c in sim_cycles:
+            d = c.domain.lower() if c.domain else "operations"
+            arr = 0.0
+            if c.metadata_json and isinstance(c.metadata_json, dict):
+                arr = float(c.metadata_json.get("arr_impact_usd", 0.0))
+            simulated_arr_total += arr
+            if d in domain_sim_val:
+                domain_sim_val[d] += arr
+                domain_sim_actions[d] += 1
+
+        # Base revenue protected ($54,450.00) + dynamic simulated crisis remediation
+        base_revenue_loss_prevented = 54450.00
+        revenue_loss_prevented = round(base_revenue_loss_prevented + simulated_arr_total, 2)
 
         # AI Compute Cost (actual multi-LLM router compute)
-        # 142 cycles * ~4.2k tokens @ $0.00002/token (Groq/Gemini/Ollama weighted avg) = ~$11.93
         ai_compute_cost = round(11.93 + (effective_actions * 0.02), 2)
 
         total_net_value = round(labor_cost_saved + revenue_loss_prevented - ai_compute_cost, 2)
@@ -254,52 +306,52 @@ class DashboardService:
             mttr_speedup_percent=mttr_speedup_percent,
         )
 
-        # Departmental Breakdown
+        # Departmental Breakdown with live dynamic simulation addition
         departments = [
             DepartmentValue(
                 domain="Sales & CRM",
-                actions_count=38,
-                value_generated=24500.00 + (38 * 25 / 60.0 * hourly_rate),
-                incidents_prevented=14,
+                actions_count=38 + domain_sim_actions["sales"],
+                value_generated=round(24500.00 + domain_sim_val["sales"] + ((38 + domain_sim_actions["sales"]) * 25 / 60.0 * hourly_rate), 2),
+                incidents_prevented=14 + domain_sim_actions["sales"],
                 top_mitigation="Auto-engaged high-churn enterprise leads in HubSpot with personalized retention incentives",
-                health_score=97.4,
-                hours_saved=round(38 * 25.0 / 60.0, 1),
+                health_score=min(99.9, round(97.4 + (domain_sim_actions["sales"] * 0.4), 1)),
+                hours_saved=round((38 + domain_sim_actions["sales"]) * 25.0 / 60.0, 1),
             ),
             DepartmentValue(
                 domain="Finance & Billing",
-                actions_count=44,
-                value_generated=18400.00 + (44 * 25 / 60.0 * hourly_rate),
-                incidents_prevented=28,
+                actions_count=44 + domain_sim_actions["finance"],
+                value_generated=round(18400.00 + domain_sim_val["finance"] + ((44 + domain_sim_actions["finance"]) * 25 / 60.0 * hourly_rate), 2),
+                incidents_prevented=28 + domain_sim_actions["finance"],
                 top_mitigation="Automated Stripe dunning retry cadence & prevented involuntary customer cancellations",
-                health_score=99.1,
-                hours_saved=round(44 * 25.0 / 60.0, 1),
+                health_score=min(99.9, round(99.1 + (domain_sim_actions["finance"] * 0.2), 1)),
+                hours_saved=round((44 + domain_sim_actions["finance"]) * 25.0 / 60.0, 1),
             ),
             DepartmentValue(
                 domain="Customer Support",
-                actions_count=32,
-                value_generated=8200.00 + (32 * 25 / 60.0 * hourly_rate),
-                incidents_prevented=19,
+                actions_count=32 + domain_sim_actions["support"],
+                value_generated=round(8200.00 + domain_sim_val["support"] + ((32 + domain_sim_actions["support"]) * 25 / 60.0 * hourly_rate), 2),
+                incidents_prevented=19 + domain_sim_actions["support"],
                 top_mitigation="Instant triage and auto-resolution of Zendesk SLA critical priority tickets",
-                health_score=95.8,
-                hours_saved=round(32 * 25.0 / 60.0, 1),
+                health_score=min(99.9, round(95.8 + (domain_sim_actions["support"] * 0.5), 1)),
+                hours_saved=round((32 + domain_sim_actions["support"]) * 25.0 / 60.0, 1),
             ),
             DepartmentValue(
                 domain="Marketing & Ads",
-                actions_count=18,
-                value_generated=3350.00 + (18 * 25 / 60.0 * hourly_rate),
-                incidents_prevented=6,
+                actions_count=18 + domain_sim_actions["marketing"],
+                value_generated=round(3350.00 + domain_sim_val["marketing"] + ((18 + domain_sim_actions["marketing"]) * 25 / 60.0 * hourly_rate), 2),
+                incidents_prevented=6 + domain_sim_actions["marketing"],
                 top_mitigation="Dynamic ROAS budget reallocation and negative sentiment ad throttling",
-                health_score=98.2,
-                hours_saved=round(18 * 25.0 / 60.0, 1),
+                health_score=min(99.9, round(98.2 + (domain_sim_actions["marketing"] * 0.3), 1)),
+                hours_saved=round((18 + domain_sim_actions["marketing"]) * 25.0 / 60.0, 1),
             ),
             DepartmentValue(
                 domain="Operations & IT",
-                actions_count=10,
-                value_generated=2100.00 + (10 * 25 / 60.0 * hourly_rate),
-                incidents_prevented=8,
+                actions_count=10 + domain_sim_actions["operations"],
+                value_generated=round(2100.00 + domain_sim_val["operations"] + ((10 + domain_sim_actions["operations"]) * 25 / 60.0 * hourly_rate), 2),
+                incidents_prevented=8 + domain_sim_actions["operations"],
                 top_mitigation="Automated capacity failover and idempotent background job worker scaling",
-                health_score=96.9,
-                hours_saved=round(10 * 25.0 / 60.0, 1),
+                health_score=min(99.9, round(96.9 + (domain_sim_actions["operations"] * 0.4), 1)),
+                hours_saved=round((10 + domain_sim_actions["operations"]) * 25.0 / 60.0, 1),
             ),
         ]
 

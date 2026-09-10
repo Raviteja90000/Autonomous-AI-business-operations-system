@@ -35,11 +35,13 @@ import {
   Area,
 } from 'recharts';
 import { api } from '../services/api';
+import { useWebSocket } from '../context/WebSocketContext';
 import { ExecutiveReportResponse } from '../types';
 import { AurenLogo } from '../components/common/AurenLogo';
 import { ScenarioSimulatorModal } from '../components/common/ScenarioSimulatorModal';
 
 export const ExecutivePage: React.FC = () => {
+  const { subscribe } = useWebSocket();
   const [report, setReport] = useState<ExecutiveReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
@@ -60,6 +62,20 @@ export const ExecutivePage: React.FC = () => {
 
   useEffect(() => {
     fetchReport();
+
+    const handleRefresh = () => {
+      fetchReport();
+    };
+
+    window.addEventListener('auren:data-refresh', handleRefresh);
+    const unsubscribe = subscribe('*', () => {
+      fetchReport();
+    });
+
+    return () => {
+      window.removeEventListener('auren:data-refresh', handleRefresh);
+      unsubscribe();
+    };
   }, []);
 
   const handlePrint = () => {

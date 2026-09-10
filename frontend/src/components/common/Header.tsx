@@ -206,6 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
         onClose={() => setIsSimulatorOpen(false)}
         onScenarioCompleted={() => {
           if (onRefresh) onRefresh();
+          window.dispatchEvent(new CustomEvent('auren:data-refresh'));
         }}
       />
     </>

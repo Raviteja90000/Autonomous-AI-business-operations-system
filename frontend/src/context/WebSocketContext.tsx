@@ -22,7 +22,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const connect = () => {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws/events`;
-      
+
       try {
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
@@ -35,7 +35,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           try {
             const parsed = JSON.parse(msg.data);
             setLastEvent(parsed);
-            
+
             // Trigger subscribers
             const handlers = subscribersRef.current.get(parsed.type);
             if (handlers) {

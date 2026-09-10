@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: autonomous-ai-business-ops-backend
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./ai_ops_manager.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENABLE_MOCK_INTEGRATIONS
+        value: "true"
+      - key: EMAIL_CONNECTOR_TYPE
+        value: resend
+      - key: RESEND_ROUTE_TO_TEST_INBOX
+        value: "true"
+      - key: RESEND_TEST_RECIPIENT
+        value: ravitejatalapaneni@gmail.com

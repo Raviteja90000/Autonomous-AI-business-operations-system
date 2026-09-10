@@ -162,7 +162,7 @@ export const ExecutivePage: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. EXECUTIVE HERO METRICS (LUXURY TILES) */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Total Net Value */}
         <div className="relative overflow-hidden rounded-2xl bg-[#181716] p-5 text-[#FAF8F5] shadow-xl border border-[#C5855A]/50">
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-[#C5855A]/10 rounded-full blur-xl pointer-events-none" />

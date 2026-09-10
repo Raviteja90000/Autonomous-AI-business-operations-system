@@ -61,7 +61,7 @@ export const OdaeaCycleVisualizer: React.FC<OdaeaVisualizerProps> = ({
         </div>
 
         {activeCycle && (
-          <div className="flex items-center space-x-2.5 text-xs">
+          <div className="flex items-center space-x-2.5 text-xs flex-wrap gap-y-2">
             <div className="px-3 py-1 rounded-xl bg-[#EFECE6] border border-[#DDD5CA] font-mono text-[#8E5633]">
               ID: {activeCycle.id.substring(0, 8)}...
             </div>
@@ -84,7 +84,7 @@ export const OdaeaCycleVisualizer: React.FC<OdaeaVisualizerProps> = ({
       </div>
 
       {/* 7-Stage Pipeline Visualizer */}
-      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-7 gap-3">
         {stages.map((stg, idx) => {
           const state = getStageState(stg.key);
           const isCompleted = state === 'completed';

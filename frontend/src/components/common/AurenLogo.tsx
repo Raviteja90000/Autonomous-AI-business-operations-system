@@ -113,15 +113,15 @@ export const AurenLogo: React.FC<AurenLogoProps> = ({
       {/* Brand Typography */}
       {variant === 'full' && (
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-display text-base font-bold tracking-[0.28em] text-[#1C1917] uppercase">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="font-display text-sm sm:text-base font-bold tracking-[0.2em] sm:tracking-[0.28em] text-[#1C1917] uppercase">
               AUREN
             </span>
-            <span className="rounded-full bg-[#F5E9DF] px-2 py-0.5 text-[9px] font-bold text-[#8E5633] border border-[#DFB59D]/70 tracking-widest uppercase">
+            <span className="hidden sm:inline rounded-full bg-[#F5E9DF] px-2 py-0.5 text-[9px] font-bold text-[#8E5633] border border-[#DFB59D]/70 tracking-widest uppercase">
               AI OPS
             </span>
           </div>
-          <span className="text-[10px] text-[#78716C] tracking-wide -mt-0.5">
+          <span className="hidden md:inline text-[10px] text-[#78716C] tracking-wide -mt-0.5">
             Autonomous Operations Matrix
           </span>
         </div>

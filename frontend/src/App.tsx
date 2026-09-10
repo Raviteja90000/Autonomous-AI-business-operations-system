@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WebSocketProvider } from './context/WebSocketContext';
@@ -25,6 +25,7 @@ import { LoginPage } from './pages/LoginPage';
 
 const ProtectedLayout: React.FC = () => {
   const { user, loading } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (loading) {
     return (
@@ -42,11 +43,11 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#EFECE6] text-[#1C1917]">
-      <Sidebar />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden bg-[#EFECE6]">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div className="flex h-screen w-full max-w-full overflow-hidden bg-[#EFECE6] text-[#1C1917]">
+      <Sidebar mobileOpen={mobileMenuOpen} onCloseMobile={() => setMobileMenuOpen(false)} />
+      <div className="flex flex-col flex-1 min-w-0 max-w-full overflow-hidden bg-[#EFECE6]">
+        <Header onToggleSidebar={() => setMobileMenuOpen(!mobileMenuOpen)} />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-8 min-w-0 max-w-full">
           <Outlet />
         </main>
       </div>

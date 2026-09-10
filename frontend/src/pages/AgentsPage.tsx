@@ -120,7 +120,7 @@ export const AgentsPage: React.FC = () => {
         </div>
 
         {/* Fallback Chain Flow Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* 1. Groq */}
           <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E2DAD0] relative space-y-3 hover:border-[#C5855A] transition-all shadow-sm">
             <div className="flex items-center justify-between">

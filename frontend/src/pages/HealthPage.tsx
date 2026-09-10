@@ -103,7 +103,7 @@ export const HealthPage: React.FC = () => {
           <span>Per-Domain Autonomous Kill Switches</span>
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
           {['sales', 'finance', 'support', 'marketing', 'operations'].map((dom) => {
             const isActive = settingsData?.kill_switch_state?.domains?.[dom] || false;
             return (

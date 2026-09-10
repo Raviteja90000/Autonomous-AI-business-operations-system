@@ -72,8 +72,8 @@ export const DashboardPage: React.FC = () => {
       {/* Top Banner: Title + Trigger Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2.5">
-            <h1 className="text-2xl font-bold font-display tracking-tight text-[#1C1917]">
+          <div className="flex items-center space-x-2.5 flex-wrap gap-y-2">
+            <h1 className="text-xl sm:text-2xl font-bold font-display tracking-tight text-[#1C1917]">
               Operations Command Center
             </h1>
             <span className="flex items-center space-x-1 rounded-full bg-[#F5E9DF] px-3 py-0.5 text-[11px] font-semibold text-[#8E5633] border border-[#DFB59D]/60 tracking-wider uppercase">
@@ -85,7 +85,7 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={() => setIsTriggerModalOpen(true)}
             className="flex items-center space-x-2 rounded-2xl bg-[#FAF8F5] px-4 py-2.5 text-xs font-bold text-[#1C1917] shadow-sm hover:bg-white transition-all cursor-pointer border border-[#DDD5CA]"
@@ -95,10 +95,8 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-
-
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
         <KpiCard metric={data.kpis.business_health} icon={TrendingUp} />
         <KpiCard metric={data.kpis.active_cycles} icon={RotateCw} />
         <KpiCard metric={data.kpis.autonomous_actions} icon={Zap} />

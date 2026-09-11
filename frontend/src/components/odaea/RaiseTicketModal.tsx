@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   X,
   CreditCard,
@@ -42,6 +43,7 @@ export const RaiseTicketModal: React.FC<RaiseTicketModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const navigate = useNavigate();
   const { autonomyTier } = useAuth();
   const [subject, setSubject] = useState('Customer disputing duplicate checkout charge on invoice');
   const [amount, setAmount] = useState<number>(25.0);
@@ -53,6 +55,8 @@ export const RaiseTicketModal: React.FC<RaiseTicketModalProps> = ({
   const [activeStep, setActiveStep] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+
+  const isOverLimit = amount > 500;
 
   const steps: AnalysisStep[] = [
     {
@@ -73,21 +77,27 @@ export const RaiseTicketModal: React.FC<RaiseTicketModalProps> = ({
       step: 3,
       name: 'Strategic Trade-off Formulation',
       agent: 'Planner Agent',
-      detail: `Comparing $${amount.toFixed(2)} refund cost vs. customer lifetime churn risk ($3,840)...`,
+      detail: isOverLimit
+        ? `High spend requested ($${amount.toFixed(2)}). Recommending human governance review...`
+        : `Comparing $${amount.toFixed(2)} refund cost vs. customer lifetime churn risk ($3,840)...`,
       status: activeStep > 3 ? 'completed' : activeStep === 3 ? 'active' : 'pending',
     },
     {
       step: 4,
       name: 'Code-Level Safety Guardrail Audit',
       agent: 'Critic & Guardrail Gate',
-      detail: `Checking safety boundary: Refund $${amount.toFixed(2)} <= $500 policy threshold...`,
+      detail: isOverLimit
+        ? `⚠️ BREACH: Refund $${amount.toFixed(2)} > $500 policy cap. Escalating to Approvals Queue!`
+        : `Checking safety boundary: Refund $${amount.toFixed(2)} <= $500 policy threshold...`,
       status: activeStep > 4 ? 'completed' : activeStep === 4 ? 'active' : 'pending',
     },
     {
       step: 5,
-      name: 'Actuator Execution & Live Settlement',
-      agent: 'Actuator Agent',
-      detail: `Issuing Stripe refund & delivering official confirmation to ${customerEmail}...`,
+      name: isOverLimit ? 'Human Approvals Queue Dispatch' : 'Actuator Execution & Live Settlement',
+      agent: isOverLimit ? 'Governance Gate' : 'Actuator Agent',
+      detail: isOverLimit
+        ? 'Autonomous execution halted. Created approval request for human sign-off.'
+        : `Issuing Stripe refund & delivering official confirmation to ${customerEmail}...`,
       status: activeStep > 5 ? 'completed' : activeStep === 5 ? 'active' : 'pending',
     },
   ];
@@ -265,80 +275,170 @@ export const RaiseTicketModal: React.FC<RaiseTicketModalProps> = ({
           </div>
         )}
 
-        {/* Success View */}
+        {/* Resolution / Escalation View */}
         {!loading && result && (
           <div className="space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-[#BBF7D0] pb-3">
-                <div className="flex items-center space-x-2 text-[#15803D]">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <h4 className="font-bold text-sm">Autonomous Resolution Confirmed & Dispatched</h4>
-                </div>
-                <span className="font-mono text-[10px] font-bold text-[#15803D] bg-white px-2 py-0.5 rounded-full border border-[#86EFAC]">
-                  MTTR: 2.7s
-                </span>
-              </div>
-
-              {/* Diagnosis Summary */}
-              <div className="space-y-2 text-xs text-[#166534]">
-                <div className="flex items-start space-x-2">
-                  <span className="font-bold shrink-0">Diagnosis:</span>
-                  <span>
-                    Observer parsed customer dispute of double billing on {result.chargeId}. Telemetry correlated gateway race condition.
-                  </span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <span className="font-bold shrink-0">Trade-off:</span>
-                  <span>
-                    Authorized micro-refund of ${result.amount.toFixed(2)} to protect customer account (${result.churnProtected.toLocaleString()} Lifetime Value).
-                  </span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <span className="font-bold shrink-0">Guardrail:</span>
-                  <span>
-                    Policy FIN-POL-004 validated: ${result.amount.toFixed(2)} is within the autonomous $500 threshold. 0 violations.
-                  </span>
-                </div>
-              </div>
-
-              {/* Live Systems Confirmations */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs font-mono">
-                <div className="p-3.5 rounded-xl bg-white border border-[#BBF7D0] shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#15803D] block text-[10px] uppercase font-bold">Stripe Gateway</span>
-                    <span className="text-[10px] font-bold text-[#15803D]">SETTLED</span>
+            {result.amount > 500 || result.status === 'AWAITING_APPROVAL' ? (
+              /* ESCALATED TO HUMAN APPROVAL VIEW (> $500 CAP) */
+              <div className="rounded-2xl bg-[#FEF3C7]/80 border border-[#FDE68A] p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-[#FDE68A] pb-3">
+                  <div className="flex items-center space-x-2 text-[#B45309]">
+                    <AlertTriangle className="w-5 h-5" />
+                    <h4 className="font-bold text-sm">Policy Guardrail Intercepted — Escalated to Human Approval</h4>
                   </div>
-                  <span className="text-base font-bold text-[#1C1917] block mt-1">Refund ${result.amount.toFixed(2)}</span>
-                  <span className="text-[10px] text-[#78716C] block truncate mt-0.5">Charge: {result.chargeId}</span>
+                  <span className="font-mono text-[10px] font-bold text-[#B45309] bg-white px-2.5 py-0.5 rounded-full border border-[#FDE68A]">
+                    AWAITING SIGN-OFF
+                  </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-white border border-[#BBF7D0] shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#15803D] block text-[10px] uppercase font-bold">Gmail Notification</span>
-                    <span className="text-[10px] font-bold text-[#15803D]">DELIVERED</span>
+                {/* Diagnosis Summary */}
+                <div className="space-y-2 text-xs text-[#92400E]">
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold shrink-0">Diagnosis:</span>
+                    <span>
+                      Observer parsed high-value refund request of ${result.amount.toFixed(2)} on {result.chargeId}.
+                    </span>
                   </div>
-                  <span className="text-base font-bold text-[#1C1917] block mt-1">Receipt via Resend</span>
-                  <span className="text-[10px] text-[#78716C] block truncate mt-0.5">To: {result.customerEmail}</span>
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold shrink-0">Trade-off:</span>
+                    <span>
+                      High capital outflow. Automated settlement paused to safeguard organizational treasury.
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold shrink-0">Guardrail:</span>
+                    <span className="font-semibold text-[#B45309]">
+                      Policy FIN-POL-004 Enforcement: Requested refund (${result.amount.toFixed(2)}) exceeds the $500.00 autonomous threshold limit.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Systems Status Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs font-mono">
+                  <div className="p-3.5 rounded-xl bg-white border border-[#FDE68A] shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#B45309] block text-[10px] uppercase font-bold">Stripe Gateway</span>
+                      <span className="text-[10px] font-bold text-[#D97706]">PAUSED</span>
+                    </div>
+                    <span className="text-base font-bold text-[#1C1917] block mt-1">Refund ${result.amount.toFixed(2)} Halted</span>
+                    <span className="text-[10px] text-[#78716C] block truncate mt-0.5">Charge: {result.chargeId}</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-[#FDE68A] shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#B45309] block text-[10px] uppercase font-bold">Human Approvals</span>
+                      <span className="text-[10px] font-bold text-[#B45309]">DISPATCHED</span>
+                    </div>
+                    <span className="text-base font-bold text-[#1C1917] block mt-1">Awaiting Sign-off</span>
+                    <span className="text-[10px] text-[#78716C] block truncate mt-0.5">Finance Director Review</span>
+                  </div>
+                </div>
+
+                {/* Value created pill */}
+                <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center justify-between text-xs">
+                  <span className="text-[#92400E] font-medium">
+                    Zero-Bypass Governance: Protected enterprise against unapproved <strong>${result.amount.toFixed(2)}</strong> treasury outflow.
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[#B45309] uppercase">Guardrail Protected</span>
                 </div>
               </div>
+            ) : (
+              /* AUTONOMOUS SETTLED VIEW (<= $500 CAP) */
+              <div className="rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-[#BBF7D0] pb-3">
+                  <div className="flex items-center space-x-2 text-[#15803D]">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <h4 className="font-bold text-sm">Autonomous Resolution Confirmed & Dispatched</h4>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-[#15803D] bg-white px-2 py-0.5 rounded-full border border-[#86EFAC]">
+                    MTTR: 2.7s
+                  </span>
+                </div>
 
-              {/* Value created pill */}
-              <div className="p-3 rounded-xl bg-[#DCFCE7]/70 border border-[#86EFAC] flex items-center justify-between text-xs">
-                <span className="text-[#166534] font-medium">
-                  Labor saved: <strong>{result.laborMinutesSaved} mins</strong> · Churn value protected: <strong>${result.churnProtected.toLocaleString()}</strong>
-                </span>
-                <span className="text-[10px] font-mono font-bold text-[#15803D] uppercase">ROI Protected</span>
+                {/* Diagnosis Summary */}
+                <div className="space-y-2 text-xs text-[#166534]">
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold shrink-0">Diagnosis:</span>
+                    <span>
+                      Observer parsed customer dispute of double billing on {result.chargeId}. Telemetry correlated gateway race condition.
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold shrink-0">Trade-off:</span>
+                    <span>
+                      Authorized micro-refund of ${result.amount.toFixed(2)} to protect customer account (${result.churnProtected.toLocaleString()} Lifetime Value).
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="font-bold shrink-0">Guardrail:</span>
+                    <span>
+                      Policy FIN-POL-004 validated: ${result.amount.toFixed(2)} is within the autonomous $500 threshold. 0 violations.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Live Systems Confirmations */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs font-mono">
+                  <div className="p-3.5 rounded-xl bg-white border border-[#BBF7D0] shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#15803D] block text-[10px] uppercase font-bold">Stripe Gateway</span>
+                      <span className="text-[10px] font-bold text-[#15803D]">SETTLED</span>
+                    </div>
+                    <span className="text-base font-bold text-[#1C1917] block mt-1">Refund ${result.amount.toFixed(2)}</span>
+                    <span className="text-[10px] text-[#78716C] block truncate mt-0.5">Charge: {result.chargeId}</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-[#BBF7D0] shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#15803D] block text-[10px] uppercase font-bold">Gmail Notification</span>
+                      <span className="text-[10px] font-bold text-[#15803D]">DELIVERED</span>
+                    </div>
+                    <span className="text-base font-bold text-[#1C1917] block mt-1">Receipt via Resend</span>
+                    <span className="text-[10px] text-[#78716C] block truncate mt-0.5">To: {result.customerEmail}</span>
+                  </div>
+                </div>
+
+                {/* Value created pill */}
+                <div className="p-3 rounded-xl bg-[#DCFCE7]/70 border border-[#86EFAC] flex items-center justify-between text-xs">
+                  <span className="text-[#166534] font-medium">
+                    Labor saved: <strong>{result.laborMinutesSaved} mins</strong> · Churn value protected: <strong>${result.churnProtected.toLocaleString()}</strong>
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[#15803D] uppercase">ROI Protected</span>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex justify-end space-x-3 pt-1">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="px-5 py-2.5 rounded-2xl bg-[#1C1917] hover:bg-[#292524] text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
-              >
-                Close & Return to Dashboard
-              </button>
+              {result.amount > 500 || result.status === 'AWAITING_APPROVAL' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="px-4 py-2.5 rounded-2xl bg-white border border-[#DDD5CA] text-[#78716C] hover:text-[#1C1917] text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleClose();
+                      navigate('/approvals');
+                    }}
+                    className="flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-[#B45309] hover:bg-[#92400E] text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+                  >
+                    <span>Review in Approvals Queue</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="px-5 py-2.5 rounded-2xl bg-[#1C1917] hover:bg-[#292524] text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+                >
+                  Close & Return to Dashboard
+                </button>
+              )}
             </div>
           </div>
         )}

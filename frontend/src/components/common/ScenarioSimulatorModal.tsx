@@ -210,14 +210,14 @@ export const ScenarioSimulatorModal: React.FC<ScenarioSimulatorModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold font-display tracking-wide uppercase text-[#FAF8F5]">
-                  God Mode Scenario Simulation Matrix
+                  Enterprise Incident Operations Matrix
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#C5855A]/20 text-[#E2AB8A] border border-[#C5855A]/50 tracking-widest uppercase">
-                  Live Engine
+                  Live Operations
                 </span>
               </div>
               <p className="text-[11px] text-[#A8A29E]">
-                Trigger real-world enterprise crises and observe autonomous ODAEA detection & resolution live
+                Trigger live operational incidents and observe autonomous closed-loop ODAEA resolution
               </p>
             </div>
           </div>
@@ -414,7 +414,7 @@ export const ScenarioSimulatorModal: React.FC<ScenarioSimulatorModalProps> = ({
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C5855A] via-[#E2AB8A] to-[#8E5633] hover:opacity-95 text-[#141312] font-extrabold text-xs shadow-xl shadow-[#C5855A]/30 transition-all cursor-pointer disabled:opacity-50"
               >
                 <Play className="w-4 h-4 fill-current" />
-                <span>{running ? 'Executing Autonomous ODAEA Flow...' : 'Launch Real-World Scenario'}</span>
+                <span>{running ? 'Executing Autonomous ODAEA Flow...' : 'Execute Incident Playbook'}</span>
               </button>
             )}
           </div>

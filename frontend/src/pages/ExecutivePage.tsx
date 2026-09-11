@@ -46,11 +46,12 @@ export const ExecutivePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hourlyRate, setHourlyRate] = useState<number>(65);
 
-  const fetchReport = async () => {
+  const fetchReport = async (rateToUse: number = hourlyRate) => {
     try {
       setIsRefreshing(true);
-      const data = await api.getExecutiveReport();
+      const data = await api.getExecutiveReport(rateToUse);
       setReport(data);
     } catch (e) {
       console.error('Failed to load executive report', e);
@@ -60,16 +61,21 @@ export const ExecutivePage: React.FC = () => {
     }
   };
 
+  const handleRateChange = (newRate: number) => {
+    setHourlyRate(newRate);
+    fetchReport(newRate);
+  };
+
   useEffect(() => {
-    fetchReport();
+    fetchReport(hourlyRate);
 
     const handleRefresh = () => {
-      fetchReport();
+      fetchReport(hourlyRate);
     };
 
     window.addEventListener('auren:data-refresh', handleRefresh);
     const unsubscribe = subscribe('*', () => {
-      fetchReport();
+      fetchReport(hourlyRate);
     });
 
     return () => {
@@ -153,11 +159,11 @@ export const ExecutivePage: React.FC = () => {
             className="flex items-center space-x-2 rounded-xl bg-[#FAF8F5] border border-[#DDD5CA] px-3.5 py-2 text-xs font-semibold text-[#1C1917] hover:border-[#C5855A] hover:bg-[#F5E9DF] transition-all cursor-pointer shadow-sm"
           >
             <Zap className="w-3.5 h-3.5 text-[#C5855A]" />
-            <span>Simulate Crisis</span>
+            <span>Incident Operations Matrix</span>
           </button>
 
           <button
-            onClick={() => fetchReport()}
+            onClick={() => fetchReport(hourlyRate)}
             disabled={isRefreshing}
             className="flex items-center space-x-2 rounded-xl border border-[#DDD5CA] bg-[#FAF8F5] px-3.5 py-2 text-xs font-semibold text-[#1C1917] hover:bg-[#EFECE6] transition-all cursor-pointer shadow-sm disabled:opacity-50"
           >
@@ -172,6 +178,67 @@ export const ExecutivePage: React.FC = () => {
             <Printer className="w-3.5 h-3.5 text-[#E2AB8A]" />
             <span>Export / Print Board Deck</span>
           </button>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 1.5 DYNAMIC LABOR RATE ARBITRAGE CONTROLLER */}
+      {/* ========================================================================= */}
+      <div className="rounded-2xl border border-[#C5855A]/40 bg-[#FAF8F5] p-5 shadow-sm print:hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1 max-w-xl">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8E5633]">
+                Dynamic Financial Model Baseline
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F5E9DF] text-[#8E5633] font-semibold border border-[#DFB59D]">
+                Live Calculation
+              </span>
+            </div>
+            <p className="text-xs text-[#78716C]">
+              Adjust the loaded human labor baseline below. Net Value, Reclaimed Labor Cost, and ROI multipliers recompute dynamically across all completed autonomous cycles.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-2 bg-[#EFECE6] p-1.5 rounded-xl border border-[#DDD5CA]">
+              {[
+                { label: '$45/hr', val: 45 },
+                { label: '$65/hr', val: 65 },
+                { label: '$95/hr', val: 95 },
+                { label: '$150/hr', val: 150 },
+              ].map((preset) => (
+                <button
+                  key={preset.val}
+                  type="button"
+                  onClick={() => handleRateChange(preset.val)}
+                  className={`px-2.5 py-1 text-xs font-mono font-semibold rounded-lg transition-all ${
+                    hourlyRate === preset.val
+                      ? 'bg-[#181716] text-[#E2AB8A] shadow-sm'
+                      : 'text-[#57534E] hover:text-[#1C1917]'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 bg-[#181716] text-[#FAF8F5] px-4 py-2 rounded-xl border border-[#C5855A]/50">
+              <div className="flex flex-col">
+                <span className="text-[9px] uppercase tracking-wider text-[#DFB59D] font-mono">Loaded Rate</span>
+                <span className="text-lg font-mono font-black text-[#E2AB8A]">${hourlyRate}/hr</span>
+              </div>
+              <input
+                type="range"
+                min="30"
+                max="250"
+                step="5"
+                value={hourlyRate}
+                onChange={(e) => handleRateChange(Number(e.target.value))}
+                className="w-28 sm:w-36 accent-[#C5855A] cursor-pointer"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

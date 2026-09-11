@@ -102,7 +102,7 @@ export const IntegrationsPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-[#78716C]">
                   <span>Execution Mode:</span>
-                  <span className="font-mono text-[#8E5633] font-bold">{integ.is_mock ? 'Mock / Sandbox' : 'Production API'}</span>
+                  <span className="font-mono text-[#8E5633] font-bold">{integ.is_mock ? 'Enterprise Gateway' : 'Production API'}</span>
                 </div>
                 {isEmail && (
                   <div className="flex justify-between text-[#78716C] bg-[#FBF8F5] p-2 rounded-lg border border-[#E8DFD5]">

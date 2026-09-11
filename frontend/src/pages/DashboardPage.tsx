@@ -94,7 +94,14 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <Link
+            to="/executive"
+            className="flex items-center space-x-2 rounded-2xl bg-[#F5E9DF] hover:bg-[#EAE0D5] border border-[#DFB59D] px-3.5 py-2.5 text-xs font-bold text-[#8E5633] shadow-sm hover:shadow-md transition-all cursor-pointer"
+          >
+            <TrendingUp className="w-4 h-4 text-[#8E5633]" />
+            <span>Executive ROI</span>
+          </Link>
           <button
             onClick={() => setIsTicketModalOpen(true)}
             className="flex items-center space-x-2 rounded-2xl bg-[#8E5633] hover:bg-[#724528] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"

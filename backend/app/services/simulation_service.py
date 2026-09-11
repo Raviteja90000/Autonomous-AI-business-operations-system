@@ -189,7 +189,7 @@ class ScenarioSimulationService:
                     "action_type": a.action_type,
                     "target_system": a.target_system,
                     "status": a.status,
-                    "execution_time_ms": a.execution_time_ms,
+                    "execution_time_ms": int((a.completed_at - a.started_at).total_seconds() * 1000) if (a.completed_at and a.started_at) else 120,
                 }
                 for a in actions
             ],

@@ -90,15 +90,15 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="tracking-wider uppercase text-[11px]">Board Report</span>
           </button>
 
-          {/* God Mode Simulator Trigger Button */}
+          {/* Operations Orchestrator Trigger Button */}
           <button
             onClick={() => setIsSimulatorOpen(true)}
-            title="God Mode Simulator"
+            title="Operations Orchestrator"
             className="flex items-center space-x-1 sm:space-x-2 rounded-xl bg-gradient-to-r from-[#181716] via-[#26221F] to-[#181716] hover:border-[#C5855A] border border-[#C5855A]/50 px-2 sm:px-3 py-1.5 text-xs font-bold text-[#E2AB8A] shadow-md shadow-[#C5855A]/15 transition-all cursor-pointer hover:scale-102 shrink-0"
           >
             <Zap className="h-3.5 w-3.5 text-[#E2AB8A] animate-pulse shrink-0" />
-            <span className="hidden xl:inline tracking-wider uppercase text-[11px]">God Mode Simulator</span>
-            <span className="hidden sm:inline xl:hidden tracking-wider uppercase text-[11px]">Simulator</span>
+            <span className="hidden xl:inline tracking-wider uppercase text-[11px]">Operations Orchestrator</span>
+            <span className="hidden sm:inline xl:hidden tracking-wider uppercase text-[11px]">Orchestrator</span>
           </button>
 
           {/* Autonomy Tier Selector */}

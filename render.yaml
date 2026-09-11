@@ -20,7 +20,17 @@ services:
         value: "true"
       - key: EMAIL_CONNECTOR_TYPE
         value: resend
+      - key: RESEND_FROM_EMAIL
+        value: onboarding@resend.dev
       - key: RESEND_ROUTE_TO_TEST_INBOX
         value: "true"
       - key: RESEND_TEST_RECIPIENT
         value: ravitejatalapaneni@gmail.com
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FINANCE_CONNECTOR_TYPE
+        value: stripe
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

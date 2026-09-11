@@ -82,7 +82,7 @@ class FinanceIntegration(BaseIntegration):
         amount = payload.get("amount_usd", 0.0)
 
         # 1. Live Stripe Execution if configured
-        if not self.is_mock and settings.STRIPE_API_KEY:
+        if settings.STRIPE_API_KEY:
             try:
                 async with httpx.AsyncClient(timeout=10.0) as client:
                     if action_type == "issue_micro_refund" and "charge_id" in payload:

@@ -49,7 +49,7 @@ class EmailIntegration(BaseIntegration):
         html_body = payload.get("body_html") or f"<p style='font-size: 14px; line-height: 1.6; color: #1C1917;'>{body}</p>"
 
         # 1. Check if Live Resend is configured
-        if not self.is_mock and settings.RESEND_API_KEY:
+        if settings.RESEND_API_KEY:
             try:
                 from_email = settings.RESEND_FROM_EMAIL or "onboarding@resend.dev"
                 test_inbox = getattr(settings, "RESEND_TEST_RECIPIENT", "ravitejatalapaneni@gmail.com") or "ravitejatalapaneni@gmail.com"

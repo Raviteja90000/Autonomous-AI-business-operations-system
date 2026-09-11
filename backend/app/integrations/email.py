@@ -61,13 +61,13 @@ class EmailIntegration(BaseIntegration):
                     or "acmecorp" in str(recipient).lower()
                 )
                 
-                # Resend sandbox (onboarding@resend.dev) strictly requires delivering to the verified account owner.
-                # If using onboarding domain or recipient is a test domain (.example, acmecorp), route to test inbox.
                 effective_recipient = test_inbox if route_to_test else recipient
+                # Clean up subject line to prevent aggressive spam classification by Gmail
+                clean_subject = str(subject).replace("[Auren Ops] ", "").replace("✅ ", "")
                 if route_to_test and recipient and recipient.lower() != test_inbox.lower():
-                    subject = f"[Auren Ops -> {recipient}] {subject}"
-                elif not subject.startswith("[Auren Ops]"):
-                    subject = f"[Auren Ops] {subject}"
+                    subject = f"[Forwarded for {recipient}] {clean_subject}"
+                else:
+                    subject = clean_subject
 
                 html_body = (
                     f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 16px 20px; background-color: #FAF8F5; "

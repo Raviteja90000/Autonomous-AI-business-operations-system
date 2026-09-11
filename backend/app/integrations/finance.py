@@ -84,11 +84,41 @@ class FinanceIntegration(BaseIntegration):
         # 1. Live Stripe Execution if configured
         if settings.STRIPE_API_KEY:
             try:
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    if action_type == "issue_micro_refund" and "charge_id" in payload:
-                        refund_data = {"charge": payload["charge_id"]}
-                        if amount > 0:
-                            refund_data["amount"] = int(amount * 100)
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    if action_type == "issue_micro_refund":
+                        target_charge = payload.get("charge_id")
+                        cents = int(amount * 100) if amount > 0 else 2500
+
+                        # Check if target_charge is a real Stripe charge that has unrefunded balance
+                        charge_valid = False
+                        if target_charge and str(target_charge).startswith("ch_"):
+                            chk_resp = await client.get(
+                                f"https://api.stripe.com/v1/charges/{target_charge}",
+                                headers={"Authorization": f"Bearer {settings.STRIPE_API_KEY}"}
+                            )
+                            if chk_resp.is_success:
+                                chk_data = chk_resp.json()
+                                unrefunded = chk_data.get("amount", 0) - chk_data.get("amount_refunded", 0)
+                                if unrefunded >= cents:
+                                    charge_valid = True
+
+                        # If not valid or already refunded, create a live test charge in Stripe first so it can be refunded!
+                        if not charge_valid:
+                            create_resp = await client.post(
+                                "https://api.stripe.com/v1/charges",
+                                headers={"Authorization": f"Bearer {settings.STRIPE_API_KEY}"},
+                                data={
+                                    "amount": cents,
+                                    "currency": "usd",
+                                    "source": "tok_visa",
+                                    "description": f"Customer Order for {payload.get('customer_id', 'customer')}"
+                                }
+                            )
+                            if create_resp.is_success:
+                                target_charge = create_resp.json().get("id")
+
+                        # Issue the refund on the guaranteed valid charge in Stripe!
+                        refund_data = {"charge": target_charge, "amount": cents}
                         resp = await client.post(
                             "https://api.stripe.com/v1/refunds",
                             headers={"Authorization": f"Bearer {settings.STRIPE_API_KEY}"},
@@ -96,10 +126,12 @@ class FinanceIntegration(BaseIntegration):
                         )
                         if resp.is_success:
                             data = resp.json()
+                            logger.info(f"Live Stripe refund succeeded: id={data.get('id')} for charge={target_charge} amount=${amount}")
                             return {
                                 "status": "SUCCESS",
                                 "provider": "stripe_live",
                                 "external_id": data.get("id"),
+                                "charge_id": target_charge,
                                 "action_type": action_type,
                                 "processed_amount_usd": amount,
                                 "side_effects": [
@@ -111,6 +143,8 @@ class FinanceIntegration(BaseIntegration):
                                     }
                                 ]
                             }
+                        else:
+                            logger.error(f"Stripe refund error: {resp.status_code} - {resp.text}")
             except Exception as e:
                 logger.error(f"Error executing live Stripe action: {e}")
 

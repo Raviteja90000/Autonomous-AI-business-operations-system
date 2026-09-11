@@ -88,6 +88,7 @@ async def trigger_cycle(
         domain=req.domain,
         trigger_type=req.trigger_type,
         autonomy_tier=autonomy_tier,
-        correlation_id=req.correlation_id
+        correlation_id=req.correlation_id,
+        ticket_data=req.ticket_data.model_dump() if req.ticket_data else None
     )
     return cycle

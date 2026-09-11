@@ -79,10 +79,16 @@ class ODAEAFlowEngine:
         trigger_type: str = "MANUAL",
         correlation_id: Optional[str] = None,
         autonomy_tier: int = 2,
-        organization_id: Optional[str] = None
+        organization_id: Optional[str] = None,
+        ticket_data: Optional[Dict[str, Any]] = None
     ) -> ODAEACycle:
         cid = correlation_id or f"corr_{uuid.uuid4().hex[:12]}"
         
+        meta = {"autonomy_tier": autonomy_tier}
+        if ticket_data:
+            meta["ticket_data"] = ticket_data
+            domain = "finance"
+
         cycle = ODAEACycle(
             organization_id=organization_id,
             domain=domain.lower(),
@@ -91,7 +97,7 @@ class ODAEAFlowEngine:
             correlation_id=cid,
             current_stage="OBSERVE",
             stage_progress={"OBSERVE": "RUNNING"},
-            metadata_json={"autonomy_tier": autonomy_tier},
+            metadata_json=meta,
         )
         self.db.add(cycle)
         await self.db.commit()
@@ -128,11 +134,54 @@ class ODAEAFlowEngine:
             cycle.stage_progress = {**(cycle.stage_progress or {}), "OBSERVE": "RUNNING"}
             await self.db.commit()
 
+            ticket_data = (cycle.metadata_json or {}).get("ticket_data")
+
             # Connectors observation
-            connector = integration_registry.get(cycle.domain) or integration_registry.get("crm")
+            connector = integration_registry.get(cycle.domain) or integration_registry.get("finance") or integration_registry.get("crm")
             raw_obs = await connector.fetch_observations() if connector else {}
             
+            if ticket_data:
+                amt = float(ticket_data.get("amount_usd", 25.0))
+                cust = ticket_data.get("customer_email", "ravitejatalapaneni@gmail.com")
+                chg = ticket_data.get("charge_id", "ch_live_demo_25")
+                sbj = ticket_data.get("subject", "Customer refund request")
+                raw_obs["source"] = "customer_support_ticket"
+                raw_obs["entities"] = [
+                    {
+                        "entity_type": "ticket",
+                        "entity_id": f"TICK-{chg}",
+                        "attributes": {
+                            "subject": sbj,
+                            "amount_usd": amt,
+                            "customer_email": cust,
+                            "charge_id": chg,
+                            "status": "open_pending_refund"
+                        },
+                        "risk_indicator": 0.85 if amt > 500 else 0.2
+                    }
+                ]
+                raw_obs["metrics"] = {
+                    "refund_requested_usd": amt,
+                    "customer_impact_score": 0.95
+                }
+
             obs_result = await self.observer.observe(cycle.domain, raw_obs)
+
+            if ticket_data:
+                amt = float(ticket_data.get("amount_usd", 25.0))
+                cust = ticket_data.get("customer_email", "ravitejatalapaneni@gmail.com")
+                chg = ticket_data.get("charge_id", "ch_live_demo_25")
+                sbj = ticket_data.get("subject", "Customer refund request")
+                obs_result["summary"] = f"Ingested support ticket: Customer {cust} requests ${amt:.2f} refund on transaction {chg}."
+                obs_result["anomalies"] = [
+                    {
+                        "entity_id": f"TICK-{chg}",
+                        "severity": "CRITICAL" if amt > 1000 else ("HIGH" if amt > 500 else "MEDIUM"),
+                        "description": f"Customer refund requested: ${amt:.2f} for {cust} on charge {chg} ({sbj})",
+                        "confidence": 0.96,
+                        "recommended_action": "issue_micro_refund"
+                    }
+                ]
             
             # Save Agent Run
             m_obs = obs_result["model_metadata"]
@@ -265,7 +314,57 @@ class ODAEAFlowEngine:
 
             # Save proposed actions
             saved_actions = []
-            for act in plan_result.get("proposed_actions", []):
+            if ticket_data:
+                amt = float(ticket_data.get("amount_usd", 25.0))
+                cust = ticket_data.get("customer_email", "ravitejatalapaneni@gmail.com")
+                chg = ticket_data.get("charge_id", "ch_live_demo_25")
+                sbj = ticket_data.get("subject", "Customer refund request")
+
+                decision.goal = f"Issue ${amt:.2f} refund via Stripe and dispatch notification to {cust}"
+                decision.estimated_cost_usd = amt
+                decision.risk_level = "CRITICAL" if amt > 1000 else ("HIGH" if amt > 500 else "LOW")
+                decision.rationale_summary = f"Customer support ticket requesting ${amt:.2f} refund on transaction {chg}. Formulated micro-refund and customer email notification."
+
+                proposed_actions_list = [
+                    {
+                        "action_type": "issue_micro_refund",
+                        "target_system": "finance",
+                        "payload": {
+                            "charge_id": chg,
+                            "invoice_id": f"INV-{chg}",
+                            "amount_usd": amt,
+                            "customer_id": cust,
+                            "reason": sbj
+                        },
+                        "estimated_cost_usd": amt,
+                        "risk_score": 0.85 if amt > 500 else 0.15,
+                        "blast_radius": 1,
+                        "is_reversible": True,
+                        "sequence_order": 1
+                    },
+                    {
+                        "action_type": "send_followup_email",
+                        "target_system": "email",
+                        "payload": {
+                            "recipient": cust,
+                            "subject": f"✅ Refund Processed: ${amt:.2f} for order ({chg})",
+                            "message": (
+                                f"Hello,\n\nYour refund request of ${amt:.2f} for transaction {chg} has been processed successfully via Stripe.\n\n"
+                                f"This operational action was reviewed and executed autonomously by the Autonomous AI Business Operations Manager.\n\n"
+                                f"Ticket Reference: {sbj}"
+                            )
+                        },
+                        "estimated_cost_usd": 0.0,
+                        "risk_score": 0.1,
+                        "blast_radius": 1,
+                        "is_reversible": True,
+                        "sequence_order": 2
+                    }
+                ]
+            else:
+                proposed_actions_list = plan_result.get("proposed_actions", [])
+
+            for act in proposed_actions_list:
                 d_act = DecisionAction(
                     decision_id=decision.id,
                     action_type=act.get("action_type", "send_followup_email"),

@@ -42,7 +42,8 @@ class CycleService:
         trigger_type: str = "MANUAL",
         autonomy_tier: int = 2,
         correlation_id: Optional[str] = None,
-        organization_id: Optional[str] = None
+        organization_id: Optional[str] = None,
+        ticket_data: Optional[Dict[str, Any]] = None
     ) -> ODAEACycle:
         engine = ODAEAFlowEngine(db)
         cycle = await engine.start_cycle(
@@ -50,6 +51,7 @@ class CycleService:
             trigger_type=trigger_type,
             correlation_id=correlation_id,
             autonomy_tier=autonomy_tier,
-            organization_id=organization_id
+            organization_id=organization_id,
+            ticket_data=ticket_data
         )
         return cycle

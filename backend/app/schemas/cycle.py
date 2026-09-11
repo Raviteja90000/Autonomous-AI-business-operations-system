@@ -3,11 +3,20 @@ from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 
 
+class TicketData(BaseModel):
+    subject: str = Field(default="Customer requesting refund")
+    amount_usd: float = Field(default=25.0, ge=0.0)
+    customer_email: str = Field(default="ravitejatalapaneni@gmail.com")
+    charge_id: Optional[str] = Field(default="ch_live_demo_25")
+    description: Optional[str] = None
+
+
 class CycleTriggerRequest(BaseModel):
     domain: str = Field(default="sales", description="Target business domain: sales, finance, support, marketing, operations")
     trigger_type: str = Field(default="MANUAL", description="MANUAL, SCHEDULED, ANOMALY_EVENT, WEBHOOK")
     correlation_id: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    ticket_data: Optional[TicketData] = None
 
 
 class WorldStateResponse(BaseModel):

@@ -134,10 +134,21 @@ class ApiClient {
     return this.request<ODAEACycle>(`/cycles/${id}`);
   }
 
-  async triggerCycle(domain: string, triggerType: string = 'MANUAL', autonomyTier: number = 2): Promise<ODAEACycle> {
+  async triggerCycle(
+    domain: string,
+    triggerType: string = 'MANUAL',
+    autonomyTier: number = 2,
+    ticketData?: {
+      subject: string;
+      amount_usd: number;
+      customer_email: string;
+      charge_id?: string;
+      description?: string;
+    }
+  ): Promise<ODAEACycle> {
     return this.request<ODAEACycle>(`/cycles/trigger?autonomy_tier=${autonomyTier}`, {
       method: 'POST',
-      body: JSON.stringify({ domain, trigger_type: triggerType }),
+      body: JSON.stringify({ domain, trigger_type: triggerType, ticket_data: ticketData }),
     });
   }
 

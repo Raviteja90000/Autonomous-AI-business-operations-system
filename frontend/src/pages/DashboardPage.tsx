@@ -18,7 +18,9 @@ import { DashboardOverview, ODAEACycle } from '../types';
 import { KpiCard } from '../components/common/KpiCard';
 import { OdaeaCycleVisualizer } from '../components/odaea/OdaeaCycleVisualizer';
 import { TriggerCycleModal } from '../components/odaea/TriggerCycleModal';
+import { RaiseTicketModal } from '../components/odaea/RaiseTicketModal';
 import { Link } from 'react-router-dom';
+import { LifeBuoy } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { autonomyTier } = useAuth();
@@ -26,6 +28,7 @@ export const DashboardPage: React.FC = () => {
   const [data, setData] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [isTriggerModalOpen, setIsTriggerModalOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [activeCycle, setActiveCycle] = useState<ODAEACycle | undefined>(undefined);
 
 
@@ -92,6 +95,13 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setIsTicketModalOpen(true)}
+            className="flex items-center space-x-2 rounded-2xl bg-[#8E5633] hover:bg-[#724528] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
+          >
+            <LifeBuoy className="w-4 h-4 text-amber-200" />
+            <span>+ Raise Ticket / Refund Demo</span>
+          </button>
           <button
             onClick={() => setIsTriggerModalOpen(true)}
             className="flex items-center space-x-2 rounded-2xl bg-[#FAF8F5] px-4 py-2.5 text-xs font-bold text-[#1C1917] shadow-sm hover:bg-white transition-all cursor-pointer border border-[#DDD5CA]"
@@ -297,6 +307,14 @@ export const DashboardPage: React.FC = () => {
       <TriggerCycleModal
         isOpen={isTriggerModalOpen}
         onClose={() => setIsTriggerModalOpen(false)}
+        onSuccess={(cid) => {
+          loadData();
+        }}
+      />
+
+      <RaiseTicketModal
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
         onSuccess={(cid) => {
           loadData();
         }}

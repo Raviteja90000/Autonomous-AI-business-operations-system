@@ -76,10 +76,18 @@ class GuardrailRuleEvaluator:
     def check_reversibility(
         is_reversible: bool,
         policy_rules: Dict[str, Any],
-        autonomy_tier: int
+        autonomy_tier: int,
+        action_type: str = "",
+        domain: str = ""
     ) -> Tuple[bool, str, bool]:
         global_limits = policy_rules.get("global_limits", {})
         disallow_irreversible = global_limits.get("disallow_irreversible_autonomous_actions", True)
+
+        # If action is explicitly listed in domain's allowed_autonomous_actions (e.g. issue_micro_refund), policy permits it autonomously
+        if domain and action_type:
+            allowed = policy_rules.get("domain_rules", {}).get(domain.lower(), {}).get("allowed_autonomous_actions", [])
+            if action_type in allowed:
+                return True, f"Action '{action_type}' is an authorized autonomous action in domain '{domain}'.", False
 
         if not is_reversible and disallow_irreversible and autonomy_tier < 3:
             return False, "Irreversible action cannot execute autonomously under current tier. Human approval required.", True

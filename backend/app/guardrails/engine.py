@@ -143,7 +143,7 @@ class GuardrailEngine:
 
         # 9. Reversibility & Tier 1 Enforcement
         rev_passed, rev_msg, rev_app = GuardrailRuleEvaluator.check_reversibility(
-            actual_reversibility, policy_rules, autonomy_tier
+            actual_reversibility, policy_rules, autonomy_tier, action_type=action_type, domain=domain
         )
         traces.append({"rule": "reversibility", "passed": rev_passed, "detail": rev_msg})
         if not rev_passed:

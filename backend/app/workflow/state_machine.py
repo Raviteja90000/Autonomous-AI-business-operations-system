@@ -347,11 +347,28 @@ class ODAEAFlowEngine:
                         "target_system": "email",
                         "payload": {
                             "recipient": cust,
-                            "subject": f"✅ Refund Processed: ${amt:.2f} for order ({chg})",
+                            "subject": f"Refund Processed: ${amt:.2f} for order ({chg})",
                             "message": (
                                 f"Hello,\n\nYour refund request of ${amt:.2f} for transaction {chg} has been processed successfully via Stripe.\n\n"
                                 f"This operational action was reviewed and executed autonomously by the Autonomous AI Business Operations Manager.\n\n"
                                 f"Ticket Reference: {sbj}"
+                            ),
+                            "body_html": (
+                                f"<div style='background: #FAF8F5; border: 1px solid #E2DAD0; border-radius: 12px; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;'>"
+                                f"<div style='display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;'>"
+                                f"<span style='font-size: 12px; font-weight: 700; color: #8E5633; letter-spacing: 0.05em; text-transform: uppercase;'>Refund Receipt</span>"
+                                f"<span style='background: #E8F5E9; color: #2E7D32; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 9999px;'>SETTLED</span>"
+                                f"</div>"
+                                f"<div style='font-size: 32px; font-weight: 700; color: #1C1917; margin-bottom: 8px;'>${amt:.2f} <span style='font-size: 14px; font-weight: 500; color: #78716C;'>USD</span></div>"
+                                f"<p style='font-size: 14px; color: #44403C; margin: 0 0 16px 0; line-height: 1.5;'>Your refund for transaction <code>{chg}</code> has been approved and issued via Stripe.</p>"
+                                f"<div style='background: #FFFFFF; border: 1px solid #E2DAD0; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #57534E; margin-bottom: 16px;'>"
+                                f"<div style='margin-bottom: 6px;'><strong>Order Reference:</strong> {chg}</div>"
+                                f"<div style='margin-bottom: 6px;'><strong>Ticket Subject:</strong> {sbj}</div>"
+                                f"<div style='margin-bottom: 6px;'><strong>Amount Credited:</strong> ${amt:.2f} USD</div>"
+                                f"<div><strong>Processed By:</strong> Autonomous AI Operations Manager</div>"
+                                f"</div>"
+                                f"<p style='font-size: 12px; color: #A8A29E; margin: 0;'>Funds typically reflect in the original payment method in 5-10 business days depending on your issuing bank.</p>"
+                                f"</div>"
                             )
                         },
                         "estimated_cost_usd": 0.0,

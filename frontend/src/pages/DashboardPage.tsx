@@ -100,7 +100,7 @@ export const DashboardPage: React.FC = () => {
             className="flex items-center space-x-2 rounded-2xl bg-[#8E5633] hover:bg-[#724528] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
           >
             <LifeBuoy className="w-4 h-4 text-amber-200" />
-            <span>+ Raise Ticket / Refund Demo</span>
+            <span>+ Raise Ticket</span>
           </button>
           <button
             onClick={() => setIsTriggerModalOpen(true)}

@@ -23,7 +23,7 @@ interface RaiseTicketModalProps {
 }
 
 const AMOUNT_PRESETS = [
-  { label: '$25 (Demo Refund)', value: 25.0, note: 'Allowed under Tier 2' },
+  { label: '$25 (Standard)', value: 25.0, note: 'Allowed under Tier 2' },
   { label: '$50 (Moderate)', value: 50.0, note: 'Allowed under Tier 2' },
   { label: '$150 (Major)', value: 150.0, note: 'Medium Risk' },
   { label: '$600 (Over Limit)', value: 600.0, note: 'Triggers Policy Guardrail Block (Cap: $500)' },
@@ -108,14 +108,14 @@ export const RaiseTicketModal: React.FC<RaiseTicketModalProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <h3 className="text-lg font-bold font-display tracking-tight text-[#1C1917]">
-                Raise Support Ticket & Live Refund Demo
+                Raise Support Ticket
               </h3>
               <span className="flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
-                <Sparkles className="w-3 h-3 mr-1" /> Live Demo
+                <Sparkles className="w-3 h-3 mr-1" /> Live Ticket
               </span>
             </div>
             <p className="text-xs text-[#78716C] mt-0.5">
-              Simulate customer ticket intake, execute Stripe refund, and dispatch confirmation to Gmail.
+              Submit customer support ticket, execute autonomous settlement, and dispatch confirmation to Gmail.
             </p>
           </div>
         </div>
